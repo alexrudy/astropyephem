@@ -25,6 +25,15 @@ EQUINOX_J2000 = Time('J2000', scale='utc')
 CELCIUS_OFFSET = 273.15 * u.K
 
 
+def _decorate_attribute_convert(f):
+    """Convert function results from """
+    @functools.wraps(f)
+    def wrap_convert(*args, **kwargs):
+        e_args = [convert_astropy_to_ephem_weak(arg) for arg in args]
+        e_kwargs = { key:convert_astropy_to_ephem_weak(kwargs[key]) for key in kwargs }
+        return convert_ephem_to_astropy_weak(f(*e_args, **e_kwargs))
+    return wrap_convert
+
 @six.add_metaclass(abc.ABCMeta)
 class EphemClass(object):
     """Converts attributes"""
@@ -46,22 +55,12 @@ class EphemClass(object):
         except:
             wrapped_repr = repr(getattr(self,'__wrapped_instance__',getattr(self,'__wrapped_class__','UNKNOWN')))[1:-1]
             return "<{} wraps {}>".format(self.__class__.__name__, wrapped_repr)
-    
-    @staticmethod
-    def _decorate_attribute_convert(f):
-        """Convert function results from """
-        @functools.wraps(f)
-        def wrap_convert(*args, **kwargs):
-            e_args = [convert_astropy_to_ephem_weak(arg) for arg in args]
-            e_kwargs = { key:convert_astropy_to_ephem_weak(kwargs[key]) for key in kwargs }
-            return convert_ephem_to_astropy_weak(f(*e_args, **e_kwargs))
-        return wrap_convert
         
     def __getattr__(self, attribute_name):
         """Manipulate attribute access to use :mod:`astropy` objects."""
         attribute = getattr(self.__wrapped_instance__, attribute_name)
         if six.callable(attribute) and isinstance(getattr(attribute,'__self__',None), self.__wrapped_class__):
-            return self._decorate_attribute_convert(attribute)
+            return _decorate_attribute_convert(attribute)
         return convert_ephem_to_astropy_weak(attribute)
         
     def __setattr__(self, attribute_name, value):
@@ -136,7 +135,10 @@ class EphemPositionClass(EphemClass):
         except:
             pass
         return repr_str + ">"
-
+    
+    size = EphemAttribute('size', u.arcsec)
+    mag = EphemAttribute('mag', u.mag)
+    
     @property
     def _equinox(self):
         """The equinox of this Body"""

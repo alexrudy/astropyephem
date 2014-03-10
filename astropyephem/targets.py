@@ -11,22 +11,27 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import sys
 
 import ephem
 
 import astropy.units as u
-from astropy.coordinates import ICRS, FK5, AltAz
+from astropy.coordinates import ICRS, FK5
 from astropy.time import Time
+from astropy.util import find_mod_objs
 
-from .bases import EphemClass, EphemPositionClass
+from .bases import EphemClass, EphemAttribute, EphemPositionClass
 
-class Target(EphemPositionClass):
-    """A Target is an object with a fixed RA and DEC"""
+__all__ = ['FixedBody', 'EllipticalBody', 'HyperbolicBody', 'ParabolicBody', 'SolarSystemBody', 'PlanetaryMoon',
+    'ArtificialSatellite']
+
+class FixedBody(EphemPositionClass):
+    """A FixedBody is an object with a fixed RA and DEC"""
     
     __wrapped_class__ = ephem.FixedBody
     
     def __init__(self, position = None, name = None):
-        super(Target, self).__init__()
+        super(FixedBody, self).__init__()
         if position is not None:
             self.fixed_position = position
         if name is not None:
@@ -59,13 +64,80 @@ class Target(EphemPositionClass):
         self._dec = coord_fk5.dec
         self._epoch = coord_fk5.equinox
         
+class EllipticalBody(EphemPositionClass):
+    """EllipticalBody"""
+    __wrapped_class__ = ephem.EllipticalBody
+    
+    _a = EphemAttribute('_a', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+    
+class HyperbolicBody(EphemPositionClass):
+    """HyperbolicBody"""
+    __wrapped_class__ = ephem.HyperbolicBody
+    
+    _q = EphemAttribute('_q', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+    
+class ParabolicBody(EphemPositionClass):
+    """HyperbolicBody"""
+    __wrapped_class__ = ephem.ParabolicBody
+    
+    _q = EphemAttribute('_q', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+
+class SolarSystemBody(EphemPositionClass):
+    """SolarSystemBody"""
+    
+    
+    # Heliocentric coordinates are not implemented
+    # by astropy, and so are not supported here for now.
+    @property
+    def heliocentric_position(self):
+        """Return the heliocentric computed position."""
+        raise NotImplementedError
+    
+    sun_distance = EphemAttribute("sun_distance", u.AU)
+    earth_distance = EphemAttribute("earth_distance", u.AU)
+
+class PlanetaryMoon(SolarSystemBody):
+    """Class for a Planetary moon."""
+    
+    # x,y,z positions are in units of planet radii, which we don't
+    # know, so we don't convert those to quantities here.
+    pass
+
+class ArtificialSatellite(SolarSystemBody):
+    """Artificial Earth Satellite."""
+    
+    elevation = EphemAttribute("elevation", u.m)
+    range = EphemAttribute("range", u.m)
+    range_velocity = EphemAttribute("range_velocity", u.m/u.s)
     
 
-class Sun(EphemPositionClass):
+# Setup the planet classes. 
+# We handle the specific planets that are provided by ephem below.
+module = sys.modules[__name__]
+for class_name, full_class_name, ephem_class in find_mod_objs('ephem'):
+    if isinstance(ephem_class, (ephem.Planet)):
+        setattr(module, class_name, type(class_name, (SolarSystemBody,), dict(__wrapped_class__ = ephem_class)))
+    elif isinstance(ephem_class, (ephem.PlanetMoon)):
+        setattr(module, class_name, type(class_name, (PlanetaryMoon,), dict(__wrapped_class__ = ephem_class)))
+    __all__ += [ class_name ]
+
+class Sun(SolarSystemBody):
     """Our star."""
     __wrapped_class__ = ephem.Sun
     
-class Moon(EphemPositionClass):
+class Moon(SolarSystemBody):
     """Earth's Moon"""
     __wrapped_class__ = ephem.Moon
     
+    
+class Jupiter(SolarSystemBody):
+    """Jupiter"""
+    __wrapped_class__ = ephem.Jupiter
+    
+class Saturn(SolarSystemBody):
+    """Jupiter"""
+    __wrapped_class__ = ephem.Saturn
+        

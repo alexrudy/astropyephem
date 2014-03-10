@@ -15,9 +15,6 @@ import ephem
 import six
 
 import astropy.units as u
-from astropy.coordinates import ICRS, FK5, AltAz, Angle
-from astropy.time import Time
-
 from .bases import EphemClass, EphemAttribute, EphemCelciusAttribute
 
 class Observer(EphemClass):
