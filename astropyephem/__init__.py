@@ -22,6 +22,12 @@ try:
 except ImportError:
     __githash__ = ''
 
+from .observers import Observer
+from .targets import Target, Sun, Moon
+from .visibility import VisibilityPlot
+
+__all__ = ['Observer', 'Target', 'Sun', 'Moon', 'VisibilityPlot']
+
 # set up the test command
 def _get_test_runner():
     from astropy.tests.helper import TestRunner
