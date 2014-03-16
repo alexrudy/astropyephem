@@ -14,6 +14,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import sys
 
 import ephem
+import inspect
 
 import astropy.units as u
 from astropy.coordinates import ICRS, FK5
@@ -118,12 +119,13 @@ class ArtificialSatellite(SolarSystemBody):
 # We handle the specific planets that are provided by ephem below.
 module = sys.modules[__name__]
 for class_name, full_class_name, ephem_class in zip(*find_mod_objs('ephem')):
-    if isinstance(ephem_class, (ephem.Planet)):
-        setattr(module, class_name, type(class_name, (SolarSystemBody,), dict(__wrapped_class__ = ephem_class)))
-        __all__ += [ class_name ]
-    elif isinstance(ephem_class, (ephem.PlanetMoon)):
-        setattr(module, class_name, type(class_name, (PlanetaryMoon,), dict(__wrapped_class__ = ephem_class)))
-        __all__ += [ class_name ]
+    if inspect.isclass(ephem_class) and class_name not in globals():
+        if issubclass(ephem_class, ephem.Planet):
+            globals()[class_name] = type(class_name, (SolarSystemBody,), dict(__wrapped_class__ = ephem_class))
+            __all__ += [ class_name ]
+        elif issubclass(ephem_class, ephem.PlanetMoon):
+            globals()[class_name] = type(class_name, (PlanetaryMoon,), dict(__wrapped_class__ = ephem_class))
+            __all__ += [ class_name ]
 
 class Sun(SolarSystemBody):
     """Our star."""
