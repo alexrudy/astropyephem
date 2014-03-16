@@ -174,7 +174,7 @@ class EphemPositionClass(EphemClass):
     
     def to_starlist(self):
         """To a starlist format"""
-        string = "{name:<20s} {ra:s} {dec:s} {epoch:.0f}".format(
+        string = "{name:<15s} {ra:s} {dec:s} {epoch:.0f}".format(
                                 name = self.name.strip(),
                                 ra = self.position.ra.to_string(u.hour, sep=" ", pad=True),
                                 dec = self.position.dec.to_string(u.degree, sep=" ", alwayssign=True),
