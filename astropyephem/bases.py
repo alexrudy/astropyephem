@@ -17,8 +17,8 @@ import six
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import ICRS, FK5, AltAz
-from pyshell.util import descriptor__get__
 
+from .utils.descriptors import descriptor__get__
 from .types import convert_astropy_to_ephem_weak, convert_ephem_to_astropy_weak
 
 EQUINOX_J2000 = Time('J2000', scale='utc')
