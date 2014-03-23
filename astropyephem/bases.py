@@ -15,9 +15,10 @@ import abc
 import functools
 import six
 import astropy.units as u
+import inspect
 from astropy.time import Time
 from astropy.coordinates import ICRS, FK5, AltAz
-
+from astropy.utils.compat import override__dir__
 from .utils.descriptors import descriptor__get__
 from .types import convert_astropy_to_ephem_weak, convert_ephem_to_astropy_weak
 
@@ -34,16 +35,25 @@ def _decorate_attribute_convert(f):
         return convert_ephem_to_astropy_weak(f(*e_args, **e_kwargs))
     return wrap_convert
 
-@six.add_metaclass(abc.ABCMeta)
-class EphemClass(object):
+class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
     """Converts attributes"""
     
-    __wrapped_class__ = None
+    __masked_attrs__ = {}
+    
+    @abc.abstractproperty
+    def __wrapped_class__(self):
+        """This is the class being wrapped for use with astropy."""
+        pass
     
     def __init__(self, *args, **kwargs):
         """Initialize this instance."""
         super(EphemClass, self).__init__(*args, **kwargs)
         self.__dict__['__wrapped_instance__'] = self.__wrapped_class__(*args, **kwargs)
+    
+    @override__dir__
+    def __dir__(self):
+        """Extend this wrapper-class's DIR to include __getattr__ hidden wrapped methods."""
+        return dir(self.__wrapped_instance__)
     
     def __repr__(self):
         """Represent this object"""
@@ -58,6 +68,8 @@ class EphemClass(object):
         
     def __getattr__(self, attribute_name):
         """Manipulate attribute access to use :mod:`astropy` objects."""
+        if attribute_name in self.__masked_attrs__:
+            return getattr(self, self.__masked_attrs__[attribute_name])
         attribute = getattr(self.__wrapped_instance__, attribute_name)
         if six.callable(attribute) and isinstance(getattr(attribute,'__self__',None), self.__wrapped_class__):
             return _decorate_attribute_convert(attribute)
@@ -82,7 +94,7 @@ class EphemClass(object):
     
     @classmethod
     def __subclasshook__(cls, C):
-        if cls.__wrapped_class__ is not None:
+        if cls.__wrapped_class__ is not None and inspect.isclass(cls.__wrapped_class__):
             if issubclass(C, cls.__wrapped_class__):
                 return True
         return NotImplemented
