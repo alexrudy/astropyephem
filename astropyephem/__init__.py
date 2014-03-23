@@ -24,6 +24,8 @@ except ImportError:
 
 from .observers import *
 from .targets import *
+from .exceptions import *
+from .functions import *
 
 # set up the test command
 def _get_test_runner():
