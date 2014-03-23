@@ -95,11 +95,17 @@ except ImportError: # compatibility with Astropy 0.2 - can be removed in cases
                          package_info['package_data'], package_info['packages'],
                          package_info['package_dir'])
 
+if sys.version_info[0] >= 3:
+    PYEPHEM_REQUIREMENTS = ['ephem']
+else:
+    PYEPHEM_REQUIREMENTS = ['pyephem']
+    
+
 setup(name=PACKAGENAME,
       version=VERSION,
       description=DESCRIPTION,
       scripts=scripts,
-      requires=['astropy'],
+      requires=['astropy'] + PYEPHEM_REQUIREMENTS,
       install_requires=['astropy'],
       provides=[PACKAGENAME],
       author=AUTHOR,
