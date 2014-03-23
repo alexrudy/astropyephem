@@ -23,8 +23,13 @@ from astropy.utils.misc import find_mod_objs
 
 from .bases import EphemClass, EphemAttribute, EphemPositionClass
 
-__all__ = ['FixedBody', 'EllipticalBody', 'HyperbolicBody', 'ParabolicBody', 'SolarSystemBody', 'PlanetaryMoon',
+__all__ = ['FixedBody', 'EllipticalBody', 'HyperbolicBody', 'ParabolicBody', 'SolarSystemBody', 'PlanetMoon',
     'ArtificialSatellite']
+
+class Body(EphemPositionClass):
+    """An astronomical body."""
+    
+    pass
 
 class FixedBody(EphemPositionClass):
     """A FixedBody is an object with a fixed RA and DEC"""
@@ -65,30 +70,9 @@ class FixedBody(EphemPositionClass):
         self._dec = coord_fk5.dec
         self._epoch = coord_fk5.equinox
         
-class EllipticalBody(EphemPositionClass):
-    """EllipticalBody"""
-    __wrapped_class__ = ephem.EllipticalBody
-    
-    _a = EphemAttribute('_a', u.AU)
-    _size = EphemAttribute('_size', u.arcsec)
-    
-class HyperbolicBody(EphemPositionClass):
-    """HyperbolicBody"""
-    __wrapped_class__ = ephem.HyperbolicBody
-    
-    _q = EphemAttribute('_q', u.AU)
-    _size = EphemAttribute('_size', u.arcsec)
-    
-class ParabolicBody(EphemPositionClass):
-    """HyperbolicBody"""
-    __wrapped_class__ = ephem.ParabolicBody
-    
-    _q = EphemAttribute('_q', u.AU)
-    _size = EphemAttribute('_size', u.arcsec)
 
 class SolarSystemBody(EphemPositionClass):
     """SolarSystemBody"""
-    
     
     # Heliocentric coordinates are not implemented
     # by astropy, and so are not supported here for now.
@@ -100,8 +84,35 @@ class SolarSystemBody(EphemPositionClass):
     sun_distance = EphemAttribute("sun_distance", u.AU)
     earth_distance = EphemAttribute("earth_distance", u.AU)
 
-class PlanetaryMoon(SolarSystemBody):
-    """Class for a Planetary moon."""
+class EllipticalBody(SolarSystemBody):
+    """EllipticalBody"""
+    __wrapped_class__ = ephem.EllipticalBody
+    
+    _a = EphemAttribute('_a', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+    
+class HyperbolicBody(SolarSystemBody):
+    """HyperbolicBody"""
+    __wrapped_class__ = ephem.HyperbolicBody
+    
+    _q = EphemAttribute('_q', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+    
+class ParabolicBody(SolarSystemBody):
+    """HyperbolicBody"""
+    __wrapped_class__ = ephem.ParabolicBody
+    
+    _q = EphemAttribute('_q', u.AU)
+    _size = EphemAttribute('_size', u.arcsec)
+    
+    
+class Planet(SolarSystemBody):
+    """Handle the correct inheritance from SolarSystemBody"""
+    
+    pass
+
+class PlanetMoon(SolarSystemBody):
+    """PlanetMoon is a SolarSystemBody type, but not a planet type."""
     
     # x,y,z positions are in units of planet radii, which we don't
     # know, so we don't convert those to quantities here.
@@ -121,26 +132,26 @@ module = sys.modules[__name__]
 for class_name, full_class_name, ephem_class in zip(*find_mod_objs('ephem')):
     if inspect.isclass(ephem_class) and class_name not in globals():
         if issubclass(ephem_class, ephem.Planet):
-            globals()[class_name] = type(class_name, (SolarSystemBody,), dict(__wrapped_class__ = ephem_class))
+            globals()[class_name] = type(class_name, (Planet,), dict(__wrapped_class__ = ephem_class))
             __all__ += [ class_name ]
         elif issubclass(ephem_class, ephem.PlanetMoon):
-            globals()[class_name] = type(class_name, (PlanetaryMoon,), dict(__wrapped_class__ = ephem_class))
+            globals()[class_name] = type(class_name, (PlanetMoon,), dict(__wrapped_class__ = ephem_class))
             __all__ += [ class_name ]
 
-class Sun(SolarSystemBody):
+class Sun(Planet):
     """Our star."""
     __wrapped_class__ = ephem.Sun
     
-class Moon(SolarSystemBody):
+class Moon(Planet):
     """Earth's Moon"""
     __wrapped_class__ = ephem.Moon
     
     
-class Jupiter(SolarSystemBody):
+class Jupiter(Planet):
     """Jupiter"""
     __wrapped_class__ = ephem.Jupiter
     
-class Saturn(SolarSystemBody):
+class Saturn(Planet):
     """Jupiter"""
     __wrapped_class__ = ephem.Saturn
         
