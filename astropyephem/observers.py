@@ -17,8 +17,14 @@ import six
 import astropy.units as u
 from .bases import EphemClass, EphemAttribute, EphemCelciusAttribute
 
+__all__ = ['Observer']
+
 class Observer(EphemClass):
     """Make an observer."""
+    
+    __masked_attrs__ = {
+        'elev' : 'elevation'
+    }
     
     __wrapped_class__ = ephem.Observer
     
