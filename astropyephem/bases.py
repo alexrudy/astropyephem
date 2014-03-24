@@ -54,6 +54,11 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
     def __dir__(self):
         """Extend this wrapper-class's DIR to include __getattr__ hidden wrapped methods."""
         return dir(self.__wrapped_instance__)
+        
+    @override__dir__
+    def __nonwrapped_attributes__(self):
+        """A special method to return only the non-wrapped attributes of this object."""
+        return list()
     
     def __repr__(self):
         """Represent this object"""
@@ -77,7 +82,7 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
         
     def __setattr__(self, attribute_name, value):
         """Set attributes, with type conversion."""
-        if attribute_name in dir(self):
+        if attribute_name in self.__nonwrapped_attributes__():
             return super(EphemClass, self).__setattr__(attribute_name, value)
         elif (not attribute_name.startswith("__")) and hasattr(self.__wrapped_instance__, attribute_name):
             value = convert_astropy_to_ephem_weak(value)
@@ -94,7 +99,7 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
     
     @classmethod
     def __subclasshook__(cls, C):
-        if cls.__wrapped_class__ is not None and inspect.isclass(cls.__wrapped_class__):
+        if inspect.isclass(cls.__wrapped_class__):
             if issubclass(C, cls.__wrapped_class__):
                 return True
         return NotImplemented

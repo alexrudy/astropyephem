@@ -36,12 +36,12 @@ class FixedBody(EphemPositionClass):
     
     __wrapped_class__ = ephem.FixedBody
     
-    def __init__(self, position = None, name = None):
+    def __init__(self, position = None, **kwargs):
         super(FixedBody, self).__init__()
         if position is not None:
             self.fixed_position = position
-        if name is not None:
-            self.name = name
+        for key in kwargs:
+            setattr(self.__wrapped_instance__, key, kwargs[key])
     
     def __repr__(self):
         """Represent this object"""
