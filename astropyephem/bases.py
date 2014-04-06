@@ -27,7 +27,7 @@ CELCIUS_OFFSET = 273.15 * u.K
 
 
 def _decorate_attribute_convert(f):
-    """Convert function results from """
+    """Convert function arguments and results between Astropy and PyEphem."""
     @functools.wraps(f)
     def wrap_convert(*args, **kwargs):
         e_args = [convert_astropy_to_ephem_weak(arg) for arg in args]

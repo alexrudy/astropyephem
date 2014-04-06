@@ -35,8 +35,7 @@ def city(name):
     return city
 
 
-# Setup the planet classes. 
-# We handle the specific planets that are provided by ephem below.
+# Wrap the pyephem functions to use astropy attributes.
 module = sys.modules[__name__]
 for func_name, full_func_name, ephem_func in zip(*find_mod_objs('ephem')):
     if inspect.isfunction(ephem_func) and func_name not in globals():

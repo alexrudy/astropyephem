@@ -31,7 +31,7 @@ class Body(EphemPositionClass):
     
     pass
 
-class FixedBody(EphemPositionClass):
+class FixedBody(Body):
     """A FixedBody is an object with a fixed RA and DEC"""
     
     __wrapped_class__ = ephem.FixedBody
@@ -70,8 +70,13 @@ class FixedBody(EphemPositionClass):
         self._dec = coord_fk5.dec
         self._epoch = coord_fk5.equinox
         
+    @classmethod
+    def from_name(cls, name):
+        """Set the position from the ICRS.from_name() function."""
+        return cls(position = ICRS.from_name(name), name = name)
+        
 
-class SolarSystemBody(EphemPositionClass):
+class SolarSystemBody(Body):
     """SolarSystemBody"""
     
     # Heliocentric coordinates are not implemented
