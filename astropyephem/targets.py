@@ -17,7 +17,7 @@ import ephem
 import inspect
 
 import astropy.units as u
-from astropy.coordinates import ICRS, FK5
+from astropy.coordinates import SkyCoord, ICRS, FK5
 from astropy.time import Time
 from astropy.utils.misc import find_mod_objs
 
@@ -66,7 +66,7 @@ class FixedBody(Body):
     @property
     def fixed_position(self):
         """The position using :class:`astropy.coordinates.ICRS` in astrometric coordinates."""
-        return FK5(self._ra, self._dec, equinox=self._equinox).transform_to(ICRS)
+        return SkyCoord(self._ra, self._dec, equinox=self._equinox, frame=FK5).transform_to(ICRS)
         
     @fixed_position.setter
     def fixed_position(self, coord):
@@ -79,7 +79,7 @@ class FixedBody(Body):
     @classmethod
     def from_name(cls, name):
         """Set the position from the ICRS.from_name() function."""
-        return cls(position = ICRS.from_name(name), name = name)
+        return cls(position = SkyCoord.from_name(name, frame=ICRS), name = name)
         
 
 class SolarSystemBody(Body):
