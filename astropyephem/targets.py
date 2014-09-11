@@ -43,15 +43,21 @@ class FixedBody(Body):
         for key in kwargs:
             setattr(self, key, kwargs[key])
     
+    def position_string(self):
+        """Return a string representation of the position"""
+        return "RA={ra},DEC={dec}".format(
+                ra = self.fixed_position.ra.to_string(u.hour, sep=":", pad=True),
+                dec = self.fixed_position.dec.to_string(u.degree, sep=":", alwayssign=True),
+            )
+    
     def __repr__(self):
         """Represent this object"""
         repr_str = "<{} ".format(self.__class__.__name__)
         if self.name is not None:
             repr_str += "'{}'".format(self.name)
         try:
-            repr_str += " at (RA={ra},DEC={dec})".format(
-                ra = self.fixed_position.ra.to_string(u.hour, sep=":", pad=True),
-                dec = self.fixed_position.dec.to_string(u.degree, sep=":", alwayssign=True),
+            repr_str += " at ({})".format(
+                self.position_string()
             )
         except:
             pass
