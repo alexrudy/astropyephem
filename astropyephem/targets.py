@@ -41,7 +41,7 @@ class FixedBody(Body):
         if position is not None:
             self.fixed_position = position
         for key in kwargs:
-            setattr(self.__wrapped_instance__, key, kwargs[key])
+            setattr(self, key, kwargs[key])
     
     def __repr__(self):
         """Represent this object"""

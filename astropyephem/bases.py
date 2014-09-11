@@ -86,7 +86,10 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
             return super(EphemClass, self).__setattr__(attribute_name, value)
         elif (not attribute_name.startswith("__")) and hasattr(self.__wrapped_instance__, attribute_name):
             value = convert_astropy_to_ephem_weak(value)
-            return setattr(self.__wrapped_instance__, attribute_name, value)
+            try:
+                setattr(self.__wrapped_instance__, attribute_name, value)
+            except AttributeError as e:
+                super(EphemClass, self).__setattr__(attribute_name, value)
         else:
             return super(EphemClass, self).__setattr__(attribute_name, value)
         
