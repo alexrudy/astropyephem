@@ -18,7 +18,7 @@ import astropy.units as u
 import inspect
 from astropy.time import Time
 from astropy.coordinates import ICRS, FK5, AltAz
-from astropy.utils.compat import override__dir__
+from .utils import override__dir__
 from .utils.descriptors import descriptor__get__
 from .types import convert_astropy_to_ephem_weak, convert_ephem_to_astropy_weak
 
@@ -27,7 +27,7 @@ CELCIUS_OFFSET = 273.15 * u.K
 
 
 def _decorate_attribute_convert(f):
-    """Convert function results from """
+    """Convert function arguments and results between Astropy and PyEphem."""
     @functools.wraps(f)
     def wrap_convert(*args, **kwargs):
         e_args = [convert_astropy_to_ephem_weak(arg) for arg in args]
@@ -49,6 +49,7 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
         """Initialize this instance."""
         super(EphemClass, self).__init__(*args, **kwargs)
         self.__dict__['__wrapped_instance__'] = self.__wrapped_class__(*args, **kwargs)
+        self.__dict__['__keywords__'] = set()
     
     @override__dir__
     def __dir__(self):
@@ -86,8 +87,12 @@ class EphemClass(six.with_metaclass(abc.ABCMeta,object)):
             return super(EphemClass, self).__setattr__(attribute_name, value)
         elif (not attribute_name.startswith("__")) and hasattr(self.__wrapped_instance__, attribute_name):
             value = convert_astropy_to_ephem_weak(value)
-            return setattr(self.__wrapped_instance__, attribute_name, value)
+            try:
+                setattr(self.__wrapped_instance__, attribute_name, value)
+            except AttributeError as e:
+                super(EphemClass, self).__setattr__(attribute_name, value)
         else:
+            self.__keywords__.add(attribute_name)
             return super(EphemClass, self).__setattr__(attribute_name, value)
         
     def __set_wrapped_attr__(self, attribute_name, value):

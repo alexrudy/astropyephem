@@ -9,7 +9,7 @@
 
 from __future__ import (absolute_import, unicode_literals, division, print_function)
 
-from astropy.utils.misc import find_mod_objs
+from .utils import find_mod_objs
 
 import sys
 import inspect
@@ -22,8 +22,8 @@ class AstropyEphemException(object):
     pass
         
 
-# Setup the planet classes. 
-# We handle the specific planets that are provided by ephem below.
+# Setup the pyephem exceptions.
+# This only serves to provide a common base-class for pyephem errors.
 module = sys.modules[__name__]
 for class_name, full_class_name, ephem_class in zip(*find_mod_objs('ephem')):
     if inspect.isclass(ephem_class) and class_name not in globals():

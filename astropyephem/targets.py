@@ -17,9 +17,10 @@ import ephem
 import inspect
 
 import astropy.units as u
-from astropy.coordinates import ICRS, FK5
+from astropy.coordinates import SkyCoord, ICRS, FK5
 from astropy.time import Time
-from astropy.utils.misc import find_mod_objs
+from .utils import find_mod_objs
+
 
 from .bases import EphemClass, EphemAttribute, EphemPositionClass
 
@@ -31,7 +32,7 @@ class Body(EphemPositionClass):
     
     pass
 
-class FixedBody(EphemPositionClass):
+class FixedBody(Body):
     """A FixedBody is an object with a fixed RA and DEC"""
     
     __wrapped_class__ = ephem.FixedBody
@@ -41,7 +42,14 @@ class FixedBody(EphemPositionClass):
         if position is not None:
             self.fixed_position = position
         for key in kwargs:
-            setattr(self.__wrapped_instance__, key, kwargs[key])
+            setattr(self, key, kwargs[key])
+    
+    def position_string(self):
+        """Return a string representation of the position"""
+        return "RA={ra},DEC={dec}".format(
+                ra = self.fixed_position.ra.to_string(u.hour, sep=":", pad=True),
+                dec = self.fixed_position.dec.to_string(u.degree, sep=":", alwayssign=True),
+            )
     
     def __repr__(self):
         """Represent this object"""
@@ -49,9 +57,8 @@ class FixedBody(EphemPositionClass):
         if self.name is not None:
             repr_str += "'{}'".format(self.name)
         try:
-            repr_str += " at (RA={ra},DEC={dec})".format(
-                ra = self.fixed_position.ra.to_string(u.hour, sep=":", pad=True),
-                dec = self.fixed_position.dec.to_string(u.degree, sep=":", alwayssign=True),
+            repr_str += " at ({})".format(
+                self.position_string()
             )
         except:
             pass
@@ -60,7 +67,7 @@ class FixedBody(EphemPositionClass):
     @property
     def fixed_position(self):
         """The position using :class:`astropy.coordinates.ICRS` in astrometric coordinates."""
-        return FK5(self._ra, self._dec, equinox=self._equinox).transform_to(ICRS)
+        return SkyCoord(self._ra, self._dec, equinox=self._equinox, frame=FK5).transform_to(ICRS)
         
     @fixed_position.setter
     def fixed_position(self, coord):
@@ -70,8 +77,13 @@ class FixedBody(EphemPositionClass):
         self._dec = coord_fk5.dec
         self._epoch = coord_fk5.equinox
         
+    @classmethod
+    def from_name(cls, name):
+        """Set the position from the ICRS.from_name() function."""
+        return cls(position = SkyCoord.from_name(name, frame=ICRS), name = name)
+        
 
-class SolarSystemBody(EphemPositionClass):
+class SolarSystemBody(Body):
     """SolarSystemBody"""
     
     # Heliocentric coordinates are not implemented
