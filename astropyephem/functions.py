@@ -9,7 +9,7 @@
 
 from __future__ import (absolute_import, unicode_literals, division, print_function)
 
-from astropy.utils.misc import find_mod_objs
+from .utils import find_mod_objs
 
 import sys
 import inspect

@@ -19,7 +19,8 @@ import inspect
 import astropy.units as u
 from astropy.coordinates import SkyCoord, ICRS, FK5
 from astropy.time import Time
-from astropy.utils.misc import find_mod_objs
+from .utils import find_mod_objs
+
 
 from .bases import EphemClass, EphemAttribute, EphemPositionClass
 
