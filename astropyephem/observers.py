@@ -12,8 +12,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import ephem
 
-import six
-
 import astropy.units as u
 from .bases import EphemClass, EphemAttribute, EphemCelciusAttribute
 

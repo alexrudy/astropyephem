@@ -13,7 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import abc
 import functools
-import six
+from astropy.extern import six
 import astropy.units as u
 import inspect
 from astropy.time import Time

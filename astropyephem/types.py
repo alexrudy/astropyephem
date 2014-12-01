@@ -19,7 +19,6 @@ import astropy.coordinates
 import astropy.units as u
 import ephem
 
-import six
 import inspect
 
 
